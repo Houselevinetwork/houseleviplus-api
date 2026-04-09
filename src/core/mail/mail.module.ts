@@ -1,34 +1,24 @@
 import { Global, Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bull';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ConfigService } from '@core/config/config.service';
 import { MailService } from './mail.service';
 import { MailProcessor } from './mail.processor';
 import { join } from 'path';
 
-/**
- * Mail Module
- * 
- * Netflix-Grade Email System:
- * - Background email sending (non-blocking)
- * - Email queues (retry failed emails)
- * - HTML templates (beautiful emails)
- * - Multiple email types
- * 
- * DPA 2019: Email logging, unsubscribe links
- */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { HandlebarsAdapter } = require('@nestjs-modules/mailer/dist/adapters/handlebars.adapter');
+
 @Global()
 @Module({
   imports: [
-    // Email Configuration
     MailerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
           host: configService.mailHost,
           port: configService.mailPort,
-          secure: false, // true for 465, false for other ports
+          secure: false,
           auth: {
             user: configService.mailUser,
             pass: configService.mailPassword,
@@ -47,7 +37,6 @@ import { join } from 'path';
       }),
     }),
 
-    // Email Queue (Background Jobs)
     BullModule.registerQueue({
       name: 'email',
     }),
@@ -55,4 +44,4 @@ import { join } from 'path';
   providers: [MailService, MailProcessor],
   exports: [MailService],
 })
-export class MailModule {} // ← Make sure "export" is here!
+export class MailModule {}

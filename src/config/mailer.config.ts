@@ -1,12 +1,14 @@
 import { MailerModule } from '@nestjs-modules/mailer';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { HandlebarsAdapter } = require('@nestjs-modules/mailer/dist/adapters/handlebars.adapter');
 
 export const mailerConfig = MailerModule.forRoot({
   transport: {
     host: process.env.MAIL_HOST,
     port: parseInt(process.env.MAIL_PORT || '587'),
-    secure: process.env.MAIL_SECURE === 'true', // true for 465, false for other ports
+    secure: process.env.MAIL_SECURE === 'true',
     auth: {
       user: process.env.MAIL_FROM,
       pass: process.env.MAIL_PASSWORD,
