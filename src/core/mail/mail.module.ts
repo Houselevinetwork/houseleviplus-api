@@ -1,13 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bull';
-import { ConfigService } from '@core/config/config.service';
+import { ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
 import { MailProcessor } from './mail.processor';
-import { join } from 'path';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { HandlebarsAdapter } = require('@nestjs-modules/mailer/dist/adapters/handlebars.adapter');
 
 @Global()
 @Module({
@@ -16,23 +12,16 @@ const { HandlebarsAdapter } = require('@nestjs-modules/mailer/dist/adapters/hand
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
-          host: configService.mailHost,
-          port: configService.mailPort,
-          secure: false,
+          host: configService.get<string>('MAIL_HOST') || 'smtp.gmail.com',
+          port: parseInt(configService.get<string>('MAIL_PORT') || '587'),
+          secure: configService.get<string>('MAIL_SECURE') === 'true',
           auth: {
-            user: configService.mailUser,
-            pass: configService.mailPassword,
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
           },
         },
         defaults: {
-          from: `"ReelAfrika" <${configService.mailFrom}>`,
-        },
-        template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new HandlebarsAdapter(),
-          options: {
-            strict: true,
-          },
+          from: `"ReelAfrika" <${configService.get<string>('MAIL_FROM')}>`,
         },
       }),
     }),

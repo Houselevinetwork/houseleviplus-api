@@ -5,11 +5,7 @@ import { VerificationToken, VerificationTokenSchema } from './schemas/verificati
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { HandlebarsAdapter } = require('@nestjs-modules/mailer/dist/adapters/handlebars.adapter');
 
 // Controllers
 import { AuthController } from './auth.controller';
@@ -17,7 +13,7 @@ import { AuthController } from './auth.controller';
 // Services - Core
 import { AuthService } from './auth.service';
 
-// Services - Specialized (Netflix-style)
+// Services - Specialized
 import { SessionService } from './services/session.service';
 import { DeviceService } from './services/device.service';
 import { RefreshTokenService } from './services/refresh-token.service';
@@ -34,7 +30,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { SubscriptionGuard } from './guards/subscription.guard';
 
-// Schemas - Netflix-Grade Security
+// Schemas
 import { Session, SessionSchema } from './schemas/session.schema';
 import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
 import { Device, DeviceSchema } from '../user/schemas/device.schema';
@@ -57,7 +53,6 @@ import { SubscriptionModule } from '../subscription/subscription.module';
     ]),
 
     UserModule,
-
     forwardRef(() => RoleModule),
     forwardRef(() => SubscriptionModule),
 
@@ -77,7 +72,7 @@ import { SubscriptionModule } from '../subscription/subscription.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         transport: {
-          host: config.get<string>('MAIL_HOST'),
+          host: config.get<string>('MAIL_HOST') || 'smtp.gmail.com',
           port: parseInt(config.get<string>('MAIL_PORT') || '587'),
           secure: config.get<string>('MAIL_SECURE') === 'true',
           auth: {
@@ -87,16 +82,6 @@ import { SubscriptionModule } from '../subscription/subscription.module';
         },
         defaults: {
           from: `"${config.get<string>('MAIL_FROM_NAME') || 'House Levi+'}" <${config.get<string>('MAIL_FROM')}>`,
-        },
-        template: {
-          dir: join(__dirname, '../templates/emails'),
-          adapter: new HandlebarsAdapter(undefined, {
-            inlineCssEnabled: true,
-          }),
-          options: {
-            strict: false,
-            extname: '.hbs',
-          },
         },
       }),
     }),
